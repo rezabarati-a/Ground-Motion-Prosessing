@@ -1,0 +1,96 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def Accel_Reading(Accel_Address, file_name, format:str, direction=None, dt=None):
+    """
+    This is a function that can be used for reading a ground motion acceleration record with differente formats:
+    Accel: Acceleration
+    Formats: (AT2, V2A, txt)
+    Input Units: (AT2:g, V2A:mm/s^2, txt:g)
+    Output Unit:(m/s^2)
+
+    Accel_Address= The address which is includes location and name of file
+    
+    file_name=  Name of file
+    
+    format= is a string, e.g. 'AT2' or 'V2A' or 'txt'
+    
+    direction= it is just nessesery for V2A format and it's a string, e.g. 'x' or 'y'
+    
+    dt= it's time interval and it just used for using single column data in format txt.
+    """
+    with open(f'{Accel_Address}/{file_name}.{format}','r') as In_Accel:
+        #------------------------------------------------------------------------------------#
+        # NGA-WEST2 Database, format=AT2
+        if format=='AT2':
+            with open(f'{Accel_Address}/{file_name}.{format}','r') as In_Accel:
+                [next(In_Accel) for i in range(3)]
+                line=next(In_Accel)
+                NPTS=int(line[5:12])
+                dt = float(line[17:25])
+                if int(NPTS/5)==NPTS/5:
+                    line_skip=int(NPTS/5)
+                else:
+                    line_skip=int(NPTS/5+1)
+                Out_Accel=[]
+                n=1
+                for Number_line in range(line_skip):
+                    line = next(In_Accel)
+                    for j in range(5):
+                        if n<=NPTS:
+                            Out_Accel.append(float(line[int(j*15):int((j+1)*15)])*9.81)
+                            n+=1
+                NPTS=len(Out_Accel)
+        #------------------------------------------------------------------------------------#
+        # New Zealand Strong-Motion Database, format=V2A
+        elif format=='V2A' and direction=='x' or direction=='X':
+            with open(f'{Accel_Address}/{file_name}.{format}','r') as In_Accel:
+                [next(In_Accel) for i in range(9)]    
+                NPTS=int(next(In_Accel)[16:25])
+                line=next(In_Accel)
+                dt = float(line[int(line.rfind('at')+3):int(line.rfind('sec'))])
+                [next(In_Accel) for i in range(int(15))]  
+                Out_Accel=[]
+                n=1
+                if int(NPTS/10)==NPTS/10:
+                    line_skip=int(NPTS/10)
+                else:
+                    line_skip=int(NPTS/10+1)
+                for Number_line in range(line_skip):
+                    line = next(In_Accel)
+                    for j in range(10):
+                        if n<=NPTS:
+                            Out_Accel.append(float(line[int(j*8):int((j+1)*8)])/1000)
+                            n+=1
+                NPTS=len(Out_Accel)
+
+        elif format=='V2A' and direction=='y' or direction=='Y': 
+            with open(f'{Accel_Address}/{file_name}.{format}','r') as In_Accel:
+                [next(In_Accel) for i in range(9)]   
+                NPTS=int(next(In_Accel)[16:25])
+                if int(NPTS/10)==NPTS/10:
+                    line_skip=int(NPTS/10)
+                else:
+                    line_skip=int(NPTS/10+1) 
+                [next(In_Accel) for Number_line in range(3*line_skip+25)]           
+                NPTS=int(next(In_Accel)[16:25])
+                line=next(In_Accel)
+                dt = float(line[int(line.rfind('at')+3):int(line.rfind('sec'))])
+                [next(In_Accel) for i in range(int(15))]
+                Out_Accel=[]
+                n=1
+                for Number_line in range(line_skip):
+                    line = next(In_Accel)
+                    for j in range(10):
+                        if n<=NPTS:
+                            Out_Accel.append(float(line[int(j*8):int((j+1)*8)])/1000)
+                            n+=1
+                NPTS=len(Out_Accel)
+        #------------------------------------------------------------------------------------#
+        elif format=='txt':
+            In_Accel=np.loadtxt(f'{Accel_Address}/{file_name}.{format}')
+            dt=dt
+            Out_Accel=In_Accel*9.81
+            NPTS=len(Out_Accel)
+        Out_Accel=np.array(Out_Accel)
+        return Out_Accel, dt, NPTS
