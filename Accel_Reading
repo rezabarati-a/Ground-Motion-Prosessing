@@ -11,7 +11,7 @@ def Accel_Reading(Accel_Address, file_name, format:str, direction=None, dt=None)
 
     Accel_Address= The address which is includes location and name of file
     
-    file_name=  Name of file
+    file_name=  The Name of  the file
     
     format= is a string, e.g. 'AT2' or 'V2A' or 'txt'
     
