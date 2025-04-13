@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def Accel_Reading(Accel_Address, file_name, format:str, direction=None, dt=None):
+def Accel_Reading(Accel_Address, file_name, format:str, direction=None, dt=None, Scale_factor=9.81):
     """
     This is a function that can be used for reading a ground motion acceleration record with differente formats:
     Accel: Acceleration
@@ -90,7 +90,7 @@ def Accel_Reading(Accel_Address, file_name, format:str, direction=None, dt=None)
         elif format=='txt':
             In_Accel=np.loadtxt(f'{Accel_Address}/{file_name}.{format}')
             dt=dt
-            Out_Accel=In_Accel*9.81
+            Out_Accel=In_Accel*Scale_factor
             NPTS=len(Out_Accel)
         Out_Accel=np.array(Out_Accel)
         return Out_Accel, dt, NPTS
